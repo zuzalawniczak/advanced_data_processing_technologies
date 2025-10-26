@@ -25,9 +25,72 @@ create table wlasciciele(
     auto samochod
 );
 
-insert into wlasciciele values('JAN','KOWALSKI', NEW SAMOCHOD('FIAT','SEICENTO',30000,DATE '0010-12-02',19500));
-insert into wlasciciele values('ADAM','NOWAK', NEW SAMOCHOD('OPEL','ASTRA',34000,DATE '0009-06-01',33700));
+insert into wlasciciele values('JAN','KOWALSKI', NEW SAMOCHOD('FIAT','SEICENTO',30000,DATE '2010-12-02',19500));
+insert into wlasciciele values('ADAM','NOWAK', NEW SAMOCHOD('OPEL','ASTRA',34000,DATE '2009-06-01',33700));
 
 
 ZADANIE 3
+
+alter type samochod replace as object (
+    marka varchar2(20),
+    model varchar2(20),
+    kilometry number,
+    data_produkcji date,
+    cena number(10, 2),
+    member function wartosc return number
+);
+
+create or replace type body samochod as
+    member function wartosc return number is
+    begin
+        return round(cena * POWER(0.9, EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM data_produkcji)),2);
+    end wartosc;
+end;
+
+
+select s.marka,s.cena,s.wartosc()
+from samochody s;
+
+ZADANIE 4
+
+ALTER TYPE samochod ADD MAP MEMBER FUNCTION odwzoruj
+RETURN NUMBER CASCADE INCLUDING TABLE DATA;
+
+
+create or replace type body samochod as
+    member function wartosc return number is
+    begin
+        return round(cena * POWER(0.9, EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM data_produkcji)),2);
+    end wartosc;
+    map member function odwzoruj return number is
+    begin
+        return round(extract(year from current_date) - extract(year from data_produkcji) + (kilometry / 10000), 2);
+    end odwzoruj;
+end;
+
+select * from samochody s order by value(s);
+
+ZADANIE 5
+
+CREATE TYPE WLASCICIEL AS OBJECT (
+    imie varchar2(100),
+    nazwisko varchar2(100)
+);
+
+create table wlasciciele5 of wlasciciel;
+
+create type samochod5 as object(
+    marka varchar2(20),
+    model varchar2(20),
+    kilometry number,
+    data_produkcji date,
+    cena number(10, 2),
+    wlasciciel ref wlasciciel
+);
+
+
+
+
+
+
 
