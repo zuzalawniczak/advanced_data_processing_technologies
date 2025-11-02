@@ -259,6 +259,189 @@ END;
 
 
 
+--ZADANIE 10
+
+CREATE TYPE jezyki_obce AS VARRAY(10) OF VARCHAR2(20);
+/
+CREATE TYPE stypendium AS OBJECT (
+ nazwa VARCHAR2(50),
+ kraj VARCHAR2(30),
+ jezyki jezyki_obce );
+/
+CREATE TABLE stypendia OF stypendium;
+INSERT INTO stypendia VALUES
+('SOKRATES','FRANCJA',jezyki_obce('ANGIELSKI','FRANCUSKI','NIEMIECKI'));
+INSERT INTO stypendia VALUES
+('ERASMUS','NIEMCY',jezyki_obce('ANGIELSKI','NIEMIECKI','HISZPANSKI'));
+SELECT * FROM stypendia;
+SELECT s.jezyki FROM stypendia s;
+UPDATE STYPENDIA
+SET jezyki = jezyki_obce('ANGIELSKI','NIEMIECKI','HISZPANSKI','FRANCUSKI')
+WHERE nazwa = 'ERASMUS';
+CREATE TYPE lista_egzaminow AS TABLE OF VARCHAR2(20);
+/
+CREATE TYPE semestr AS OBJECT (
+ numer NUMBER,
+ egzaminy lista_egzaminow );
+/
+CREATE TABLE semestry OF semestr
+NESTED TABLE egzaminy STORE AS tab_egzaminy;
+INSERT INTO semestry VALUES
+(semestr(1,lista_egzaminow('MATEMATYKA','LOGIKA','ALGEBRA')));
+INSERT INTO semestry VALUES
+(semestr(2,lista_egzaminow('BAZY DANYCH','SYSTEMY OPERACYJNE')));
+SELECT s.numer, e.*
+FROM semestry s, TABLE(s.egzaminy) e;
+SELECT e.*
+FROM semestry s, TABLE ( s.egzaminy ) e;
+SELECT * FROM TABLE ( SELECT s.egzaminy FROM semestry s WHERE numer=1 );
+INSERT INTO TABLE ( SELECT s.egzaminy FROM semestry s WHERE numer=2 )
+VALUES ('METODY NUMERYCZNE');
+UPDATE TABLE ( SELECT s.egzaminy FROM semestry s WHERE numer=2 ) e
+SET e.column_value = 'SYSTEMY ROZPROSZONE'
+WHERE e.column_value = 'SYSTEMY OPERACYJNE';
+DELETE FROM TABLE ( SELECT s.egzaminy FROM semestry s WHERE numer=2 ) e
+WHERE e.column_value = 'BAZY DANYCH';
+
+
+
+--ZADANIE 11
+
+create type koszyk_produktow as table of varchar2(20); 
+
+create type zakup as object (
+    sklep varchar2(50),
+    produkty koszyk_produktow
+);
+
+create table zakupy of zakup
+nested table produkty store as tab_produkty;
+
+insert into zakupy values
+(zakup('amazon', koszyk_produktow('telewizor', 'iphone')));
+insert into zakupy values
+(zakup('allegro', koszyk_produktow('farby', 'buty', 'buldak')));
+insert into zakupy values
+(zakup('ebay', koszyk_produktow('choinka')));
+
+select * from zakupy;
+
+delete from zakupy 
+where sklep in (
+    select sklep
+    from zakupy z, table(z.produkty) p
+    where p.column_value = 'choinka'
+);
+
+
+-- ZADANIE 12
+
+DROP TYPE instrument_klawiszowy FORCE;
+DROP TYPE instrument_dety FORCE;
+DROP TYPE instrument FORCE;
+
+
+CREATE TYPE instrument AS OBJECT (
+ nazwa VARCHAR2(20),
+ dzwiek VARCHAR2(20),
+ MEMBER FUNCTION graj RETURN VARCHAR2 ) NOT FINAL;
+CREATE TYPE BODY instrument AS
+ MEMBER FUNCTION graj RETURN VARCHAR2 IS
+ BEGIN
+ RETURN dzwiek;
+ END;
+END;
+/
+CREATE TYPE instrument_dety UNDER instrument (
+ material VARCHAR2(20),
+ OVERRIDING MEMBER FUNCTION graj RETURN VARCHAR2,
+ MEMBER FUNCTION graj(glosnosc VARCHAR2) RETURN VARCHAR2 );
+CREATE OR REPLACE TYPE BODY instrument_dety AS
+ OVERRIDING MEMBER FUNCTION graj RETURN VARCHAR2 IS
+ BEGIN
+ RETURN 'dmucham: '||dzwiek;
+ END;
+ MEMBER FUNCTION graj(glosnosc VARCHAR2) RETURN VARCHAR2 IS
+ BEGIN
+ RETURN glosnosc||':'||dzwiek;
+ END;
+END;
+/
+CREATE TYPE instrument_klawiszowy UNDER instrument (
+ producent VARCHAR2(20),
+ OVERRIDING MEMBER FUNCTION graj RETURN VARCHAR2 );
+CREATE OR REPLACE TYPE BODY instrument_klawiszowy AS
+ OVERRIDING MEMBER FUNCTION graj RETURN VARCHAR2 IS
+ BEGIN
+ RETURN 'stukam w klawisze: '||dzwiek;
+ END;
+END;
+/
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+ tamburyn instrument := instrument('tamburyn','brzdek-brzdek');
+ trabka instrument_dety := instrument_dety('trabka','tra-ta-ta','metalowa');
+ fortepian instrument_klawiszowy := instrument_klawiszowy('fortepian','pingping','steinway');
+BEGIN
+ dbms_output.put_line(tamburyn.graj);
+ dbms_output.put_line(trabka.graj);
+ dbms_output.put_line(trabka.graj('glosno'));
+ dbms_output.put_line(fortepian.graj);
+END;
+
+
+-- ZADANIE 13
+
+CREATE TYPE istota AS OBJECT (
+ nazwa VARCHAR2(20),
+ NOT INSTANTIABLE MEMBER FUNCTION poluj(ofiara CHAR) RETURN CHAR )
+ NOT INSTANTIABLE NOT FINAL;
+CREATE TYPE lew UNDER istota (
+ liczba_nog NUMBER,
+ OVERRIDING MEMBER FUNCTION poluj(ofiara CHAR) RETURN CHAR );
+CREATE OR REPLACE TYPE BODY lew AS
+ OVERRIDING MEMBER FUNCTION poluj(ofiara CHAR) RETURN CHAR IS
+ BEGIN
+ RETURN 'upolowana ofiara: '||ofiara;
+ END;
+END;
+DECLARE
+ KrolLew lew := lew('LEW',4);
+ --InnaIstota istota := istota('JAKIES ZWIERZE');
+BEGIN
+ DBMS_OUTPUT.PUT_LINE( KrolLew.poluj('antylopa') );
+END;
+
+
+-- ZADANIE 14
+
+
+DECLARE
+ tamburyn instrument;
+ cymbalki instrument;
+ trabka instrument_dety;
+ saksofon instrument_dety;
+BEGIN
+ tamburyn := instrument('tamburyn','brzdek-brzdek');
+ cymbalki := instrument_dety('cymbalki','ding-ding','metalowe');
+ trabka := instrument_dety('trabka','tra-ta-ta','metalowa');
+ -- saksofon := instrument('saksofon','tra-taaaa');
+ -- saksofon := TREAT( instrument('saksofon','tra-taaaa') AS instrument_dety);
+END;
+
+
+-- ZADANIE 15
+
+CREATE TABLE instrumenty OF instrument;
+INSERT INTO instrumenty VALUES ( instrument('tamburyn','brzdek-brzdek') );
+INSERT INTO instrumenty VALUES ( instrument_dety('trabka','tra-ta-ta','metalowa')
+);
+INSERT INTO instrumenty VALUES ( instrument_klawiszowy('fortepian','pingping','steinway') );
+SELECT i.nazwa, i.graj() FROM instrumenty i;
+
+
 
 
 
