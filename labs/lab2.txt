@@ -1,0 +1,30 @@
+--ZADANIE 1
+create table movies as select * from ztpd.movies;
+
+--ZADANIE 2
+describe movies;
+SELECT * FROM MOVIES;
+
+--ZADANIE 3
+select * from movies
+where cover is null;
+
+--ZADANIE 4
+select id, title, DBMS_LOB.GETLENGTH(cover) as filesize from movies 
+where cover is not null;
+
+--ZADANIE 5
+select id, title, DBMS_LOB.GETLENGTH(cover) as filesize from movies 
+where cover is null;
+
+--ZADANIE 6
+select * from ALL_DIRECTORIES;
+
+--ZADANIE 7
+update movies
+set cover = empty_blob(), mime_type = 'image/jpeg'
+where id = 66;
+
+--ZADNANIE 8
+select id, title, DBMS_LOB.GETLENGTH(cover) as filesize from movies 
+where id in (65,66);
