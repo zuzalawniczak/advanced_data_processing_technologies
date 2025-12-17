@@ -28,3 +28,66 @@ where id = 66;
 --ZADNANIE 8
 select id, title, DBMS_LOB.GETLENGTH(cover) as filesize from movies 
 where id in (65,66);
+
+--ZADANIE 9
+DECLARE
+    lobd blob;
+    fils BFILE := BFILENAME('TPD_DIR','escape.jpg');
+BEGIN
+    SELECT COVER INTO LOBD
+    FROM MOVIES
+    WHERE ID=66
+    FOR UPDATE;
+    dbms_lob.fileopen(fils, dbms_lob.file_readonly);
+    dbms_lob.loadfromfile(lobd, fils, dbms_lob.getlength(fils));
+    dbms_lob.fileclose(fils);
+    COMMIT;
+END;
+
+--ZADANIE 10
+CREATE TABLE TEMP_COVERS (
+    MOVIE_ID NUMBER(12),
+    IMAGE BFILE,
+    MIME_TYPE VARCHAR2(50)
+);
+
+--ZADANIE 11
+DECLARE
+    fils BFILE := BFILENAME('TPD_DIR','eagles.jpg');
+BEGIN
+    INSERT INTO TEMP_COVERS(MOVIE_ID, IMAGE, MIME_TYPE)
+    VALUES (65, fils, 'image/jpeg');
+    COMMIT;
+END;
+
+--ZADANIE 12
+SELECT movie_id, DBMS_LOB.GETLENGTH(image) from temp_covers where movie_id=65;
+
+--ZADANIE 13
+DECLARE
+    lobd BLOB;
+    fils BFILE;
+    mime_type2 VARCHAR2(50);
+BEGIN
+    select image into fils
+    from temp_covers
+    where movie_id=65;
+    select mime_type into mime_type2
+    from temp_covers
+    where movie_id=65;
+    DBMS_LOB.CREATETEMPORARY(lobd, TRUE);
+    DBMS_LOB.FILEOPEN(fils, DBMS_LOB.file_readonly);
+    DBMS_LOB.LOADFROMFILE(lobd,fils,DBMS_LOB.GETLENGTH(fils));
+    DBMS_LOB.FILECLOSE(fils);
+    UPDATE MOVIES
+    SET COVER = lobd, mime_type=mime_type2
+    WHERE ID=65;
+    DBMS_LOB.freetemporary(lobd);
+    COMMIT;
+END;
+
+--ZADANIE 14
+SELECT id, DBMS_LOB.GETLENGTH(cover) from movies where id in (65,66);
+
+--ZADANIE 15
+DROP TABLE movies;
