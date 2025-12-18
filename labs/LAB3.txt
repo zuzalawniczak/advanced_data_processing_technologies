@@ -111,5 +111,44 @@ SELECT ID,DBMS_LOB.GETLENGTH(DOKUMENT) FROM DOKUMENTY;
 --zadanie 11
 drop table dokumenty;
 
+--zadanie 12
+CREATE OR REPLACE PROCEDURE CLOB_CENSOR(param_clob in out clob, param_text in varchar2)
+is
+    kropki varchar2(32767);
+    rozmiar integer := length(param_text);
+    pozycja integer:=1;
+    wystapienie integer:=1;
+begin
+    for i in 1..rozmiar
+    loop
+        kropki:=concat(kropki,'.');
+    end loop;
+    loop
+        pozycja:=DBMS_LOB.INSTR(param_clob, param_text, pozycja, wystapienie);
+        exit when pozycja=0;
+        DBMS_LOB.write(param_clob, rozmiar, pozycja, kropki);
+        wystapienie:=wystapienie+1;
+    end loop;
+end CLOB_CENSOR;
+
+--zadnie 13
+create table BIOGRAPHIES
+as select * from ztpd.biographies;
+
+select * from biographies;
+
+DECLARE
+    bl CLOB;
+BEGIN
+    SELECT bio INTO bl
+    FROM BIOGRAPHIES
+    WHERE ID=1
+    FOR UPDATE;
+    
+    clob_censor(bl, 'Cimrman');
+END;
+
+--ZADANIE 14
+DROP TABLE BIOGRAPHIES;
 
 
