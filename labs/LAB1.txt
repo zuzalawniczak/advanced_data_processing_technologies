@@ -1,21 +1,4 @@
---LAB 1
-
-DROP TABLE wlasciciele5 CASCADE CONSTRAINTS;
-DROP TABLE wlasciciele CASCADE CONSTRAINTS;
-DROP TABLE samochody CASCADE CONSTRAINTS;
-
-DROP TYPE samochod5 FORCE;
-DROP TYPE wlasciciel FORCE;
-
-DROP TYPE samochod FORCE;
-
-
-
-
-
-
-
---ZADANIE 1
+--ZADANIE 1 
 
 CREATE TYPE samochod AS OBJECT (
     marka VARCHAR2(20),
@@ -31,20 +14,7 @@ insert into samochody values(NEW samochod('FIAT','BRAVA',60000,DATE '1999-11-30'
 insert into samochody values(NEW samochod('FORD','MONDEO',80000,DATE '1997-05-10',45000));
 insert into samochody values(NEW samochod('MAZDA','323',12000,DATE '2000-09-22',52000));
 
-
 --ZADANIE 2
-
-create table wlasciciele(
-    imie varchar2(100),
-    nazwisko varchar2(100),
-    auto samochod
-);
-
-insert into wlasciciele values('JAN','KOWALSKI', NEW SAMOCHOD('FIAT','SEICENTO',30000,DATE '2010-12-02',19500));
-insert into wlasciciele values('ADAM','NOWAK', NEW SAMOCHOD('OPEL','ASTRA',34000,DATE '2009-06-01',33700));
-
-
---ZADANIE 3
 
 alter type samochod replace as object (
     marka varchar2(20),
@@ -66,7 +36,7 @@ end;
 select s.marka,s.cena,s.wartosc()
 from samochody s;
 
---ZADANIE 4
+--zadanie 3
 
 ALTER TYPE samochod ADD MAP MEMBER FUNCTION odwzoruj
 RETURN NUMBER CASCADE INCLUDING TABLE DATA;
@@ -85,44 +55,64 @@ end;
 
 select * from samochody s order by value(s);
 
+--ZADANIE 4
+
+create table wlasciciele(
+    imie varchar2(100),
+    nazwisko varchar2(100),
+    auto samochod
+);
+
+insert into wlasciciele values('JAN','KOWALSKI', NEW SAMOCHOD('FIAT','SEICENTO',30000,DATE '2010-12-02',19500));
+insert into wlasciciele values('ADAM','NOWAK', NEW SAMOCHOD('OPEL','ASTRA',34000,DATE '2009-06-01',33700));
+
 --ZADANIE 5
 
-CREATE TYPE WLASCICIEL5 AS OBJECT (
+DROP TABLE wlasciciele;
+
+--ZADANIE 6
+
+CREATE TYPE WLASCICIEL AS OBJECT (
     imie varchar2(100),
     nazwisko varchar2(100)
 );
 
-create table wlasciciele5 of wlasciciel5;
+create table wlasciciele of wlasciciel;
 
-insert into wlasciciele5 values(Wlasciciel5('Zuzanna','Lawniczak'));
+insert into wlasciciele values(Wlasciciel('Zuzanna','Lawniczak'));
+INSERT INTO WLASCICIELE VALUES(WLASCICIEL('STAS','ADAMCZEWSKI'));
 
-create type samochod5 as object(
-    marka varchar2(20),
-    model varchar2(20),
-    kilometry number,
-    data_produkcji date,
-    cena number(10, 2),
-    wlasciciel ref wlasciciel5
-);
+SELECT * FROM WLASCICIELE;
 
-create table samochody5 of samochod5;
-insert into samochody5 values   
-    (new samochod5('ford', 'mondeo', 80000, date '1997-05-10', 45000, null));
-insert into samochody5 values   
-    (new samochod5('mazda', '323', 12000, date '2000-09-22', 52000, null));
-insert into samochody5 values   
-     (new samochod5('fiat', 'brava', 60000, date '1999-11-30', 25000, null));
-     
-update samochody5 s
-set s.wlasciciel = (
-    select ref(w) from wlasciciele5 w
-    where w.imie = 'Zuzanna'
-);
-select * from samochody5;
+--ZADANIE 7
 
+ALTER TYPE samochod ADD ATTRIBUTE wlasc REF wlasciciel CASCADE;
 
+-- ZADANIE 8
 
---ZADANIE 6
+DELETE FROM samochody;
+
+--ZADANIE 9
+
+ALTER TABLE SAMOCHODY ADD SCOPE FOR(wlasc) IS WLASCICIELE;
+
+--ZADANIE 10
+
+INSERT INTO samochody VALUES (NEW samochod('FIAT', 'BRAVA', 60000, DATE '1999-11-30', 25000, NULL));
+INSERT INTO samochody VALUES (NEW samochod('FORD', 'MONDEO', 80000, DATE '1997-05-10', 45000, NULL));
+
+UPDATE samochody s
+SET s.wlasc = (SELECT REF(w) FROM wlasciciele w WHERE w.nazwisko = 'Lawniczak')
+WHERE s.marka = 'FIAT';
+
+UPDATE samochody s
+SET s.wlasc = (SELECT REF(w) FROM wlasciciele w WHERE w.nazwisko = 'ADAMCZEWSKI')
+WHERE s.marka = 'FORD';
+
+SELECT s.marka, s.model, DEREF(s.wlasc)
+FROM samochody s;
+
+-- ZADANIE 11
 
 SET SERVEROUTPUT ON SIZE 30000;
 
@@ -153,7 +143,7 @@ BEGIN
  DBMS_OUTPUT.PUT_LINE('Liczba elementow: ' || moje_przedmioty.COUNT());
 END;
 
--- ZADANIE 7
+-- zadanie 12
 
 DECLARE
  TYPE t_ksiazki IS VARRAY(10) OF VARCHAR2(100);
@@ -182,7 +172,7 @@ BEGIN
  DBMS_OUTPUT.PUT_LINE('Liczba elementow: ' || moje_ksiazki.COUNT());
 END;
 
--- ZADANIE 8
+-- ZADANIE 13
 
 DECLARE
  TYPE t_wykladowcy IS TABLE OF VARCHAR2(20);
@@ -222,9 +212,7 @@ BEGIN
  DBMS_OUTPUT.PUT_LINE('Liczba elementow: ' || moi_wykladowcy.COUNT());
 END;
 
-
-
--- ZADANIE 9
+-- ZADANIE 14
 
 DECLARE
  TYPE t_miesiace IS TABLE OF VARCHAR2(20);
@@ -257,9 +245,7 @@ BEGIN
  END LOOP;
 END;
 
-
-
---ZADANIE 10
+-- ZADANIE 15
 
 CREATE TYPE jezyki_obce AS VARRAY(10) OF VARCHAR2(20);
 /
@@ -303,9 +289,7 @@ WHERE e.column_value = 'SYSTEMY OPERACYJNE';
 DELETE FROM TABLE ( SELECT s.egzaminy FROM semestry s WHERE numer=2 ) e
 WHERE e.column_value = 'BAZY DANYCH';
 
-
-
---ZADANIE 11
+-- ZADANIE 16
 
 create type koszyk_produktow as table of varchar2(20); 
 
@@ -333,8 +317,7 @@ where sklep in (
     where p.column_value = 'choinka'
 );
 
-
--- ZADANIE 12
+-- ZADANIE 17
 
 DROP TYPE instrument_klawiszowy FORCE;
 DROP TYPE instrument_dety FORCE;
@@ -391,8 +374,7 @@ BEGIN
  dbms_output.put_line(fortepian.graj);
 END;
 
-
--- ZADANIE 13
+-- ZADANIE 18
 
 CREATE TYPE istota AS OBJECT (
  nazwa VARCHAR2(20),
@@ -414,9 +396,7 @@ BEGIN
  DBMS_OUTPUT.PUT_LINE( KrolLew.poluj('antylopa') );
 END;
 
-
--- ZADANIE 14
-
+-- ZADANIE 19
 
 DECLARE
  tamburyn instrument;
@@ -431,8 +411,7 @@ BEGIN
  -- saksofon := TREAT( instrument('saksofon','tra-taaaa') AS instrument_dety);
 END;
 
-
--- ZADANIE 15
+-- ZADANIE 20
 
 CREATE TABLE instrumenty OF instrument;
 INSERT INTO instrumenty VALUES ( instrument('tamburyn','brzdek-brzdek') );
@@ -440,10 +419,3 @@ INSERT INTO instrumenty VALUES ( instrument_dety('trabka','tra-ta-ta','metalowa'
 );
 INSERT INTO instrumenty VALUES ( instrument_klawiszowy('fortepian','pingping','steinway') );
 SELECT i.nazwa, i.graj() FROM instrumenty i;
-
-
-
-
-
-
-
