@@ -7,7 +7,7 @@ Repository for the ADPT class.
 | :---: | :--- | :---: | :---: | :---: |
 | 1 | Obiektowo-relacyjne bazy danych - lab | 10.10 | [X] | [ ] |
 | 2 | Duże obiekty binarne (BLOB) - lab | 17.10 | [X] | [ ] |
-| 3 | Duże obiekty tekstowe (CLOB) - lab | 24.10 | [ ] | [ ] |
+| 3 | Duże obiekty tekstowe (CLOB) - lab | 24.10 | [X] | [ ] |
 | 4 | Oracle Spatial: Typ SDO\_GEOMETRY - lab | 07.11 | [ ] | [ ] |
 | 5 | Oracle Spatial: Przetwarzanie danych - lab | 14.11 | [ ] | [ ] |
 | 6 | Oracle Spatial: Standard SQL/MM - lab | 21.11 | [ ] | [ ] |
