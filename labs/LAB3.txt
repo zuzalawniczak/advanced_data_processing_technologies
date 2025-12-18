@@ -1,0 +1,115 @@
+--ZADANIE 1
+create table DOKUMENTY (
+    ID NUMBER(12) PRIMARY KEY,
+    DOKUMENT CLOB
+);
+
+--ZADNIE 2
+DECLARE
+    tekst VARCHAR(15) := 'Oto tekst. ';
+    licznik number :=10000;
+    tekst_clob CLOB;
+BEGIN
+    for i in 1..licznik
+    loop
+        tekst_clob := concat(tekst_clob,tekst);
+    end loop;
+    insert into DOKUMENTY VALUES
+    (1, tekst_clob);
+END;
+
+--zadanie 3
+SELECT * FROM dokumenty;
+
+SELECT ID,UPPER(DOKUMENT) FROM DOKUMENTY;
+
+SELECT ID,LENGTH(DOKUMENT) FROM DOKUMENTY;
+
+SELECT ID,DBMS_LOB.GETLENGTH(DOKUMENT) FROM DOKUMENTY;
+
+select id, substr(dokument, 5,1000) from dokumenty;
+
+select id, DBMS_LOB.SUBSTR(dokument,1000,5) from dokumenty;
+
+--ZADANIE 4
+insert into dokumenty values(2, empty_clob());
+
+--ZADANIE 5
+insert into dokumenty values(3,null);
+
+--zadanie 6
+SELECT * FROM dokumenty;
+
+1 Oto tekst....
+2
+3 (null)
+
+SELECT ID,UPPER(DOKUMENT) FROM DOKUMENTY;
+
+1 OTO TEKST....
+2
+3 (null)
+
+SELECT ID,LENGTH(DOKUMENT) FROM DOKUMENTY;
+
+1 110000
+2 0
+3 (null)
+
+SELECT ID,DBMS_LOB.GETLENGTH(DOKUMENT) FROM DOKUMENTY;
+
+1 110000
+2 0
+3 (null)
+
+select id, substr(dokument, 5,1000) from dokumenty;
+
+1 tekst....
+2
+3 (null)
+
+select id, DBMS_LOB.SUBSTR(dokument,1000,5) from dokumenty;
+
+1 tekst....
+2 (null)
+3 (null)
+
+--ZADNIE 7
+set serveroutput on size 30000;
+
+DECLARE
+    plik BFILE := BFILENAME('TPD_DIR','dokument.txt');
+    tekst CLOB;
+    DOFFSET integer :=1;
+    soffset integer :=1;
+    bfile_csid integer:=0;
+    langctx integer :=0;
+    warn integer:=null;
+BEGIN
+    SELECT DOKUMENT INTO tekst
+    FROM DOKUMENTY
+    WHERE ID=2
+    FOR UPDATE;
+    DBMS_LOB.fileopen(plik, DBMS_LOB.file_readonly);
+    DBMS_LOB.LOADCLOBFROMFILE(tekst, plik, DBMS_LOB.LOBMAXSIZE, doffset, soffset, bfile_csid, langctx, warn);
+    DBMS_LOB.FILECLOSE(plik);
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Status operacji: '||warn);
+END;
+
+--ZADANIE 8
+update dokumenty
+set dokument=to_clob(bfilename('TPD_DIR','dokument.txt'))
+where id=3;
+
+--ZADANIE 9
+SELECT * FROM DOKUMENTY;
+
+--zadanie 10
+SELECT ID,DBMS_LOB.GETLENGTH(DOKUMENT) FROM DOKUMENTY;
+
+--zadanie 11
+drop table dokumenty;
+
+
+
