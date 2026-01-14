@@ -1,0 +1,214 @@
+--ZADANIE 1
+
+CREATE TABLE CYTATY AS
+SELECT * FROM ZTPD.CYTATY;
+
+--ZADANIE 2
+SELECT * FROM cytaty
+WHERE lower(tekst) LIKE '%optymista%' AND lower(tekst) LIKE '%pesymista%';
+
+--ZADANIE 3
+create index CYTATY_TEKST_IDX on CYTATY(TEKST)
+indextype is CTXSYS.CONTEXT;
+
+--ZADANIE 4
+select * from cytaty
+where contains(tekst,'optymista AND pesymista')>0;
+
+--ZADANIE 5
+select * from cytaty
+where contains(tekst,'pesymista NOT optymista')>0;
+
+--ZADANIE 6
+SELECT * FROM cytaty
+WHERE CONTAINS(tekst, 'NEAR((optymist, pesymist), 3)') > 0;
+
+--ZADANIE 7
+SELECT * FROM cytaty
+WHERE CONTAINS(tekst, 'NEAR((optymista, pesymista), 10)') > 0;
+
+--ZADANIE 8
+select * from cytaty
+where contains(tekst, 'życi%')>0;
+
+--ZADANIE 9
+select score(1) from cytaty
+where contains(tekst, 'życi%',1)>0;
+
+--ZADANIE 10
+SELECT SCORE(1) AS score, autor, tekst
+FROM cytaty
+WHERE CONTAINS(tekst, 'życi%', 1) > 0
+ORDER BY SCORE(1) DESC
+FETCH FIRST 1 ROW ONLY;
+
+--ZADANIE 11
+select * from cytaty
+where contains(tekst, 'fuzzy(probelm)')>0;
+
+--ZADANIE 12
+INSERT INTO CYTATY(id,autor,tekst) values
+(39,'Bertrand Russell','To smutne, że głupcy są tacy pewni siebie, a ludzie rozsądni tacy pełni wątpliwości.');
+
+--ZADANIE 13
+select * from cytaty
+where contains(tekst, 'głupcy')>0;
+-- jest pusty wynik, bo indeks był tworzony bez tych danych
+
+--ZADANIE 14
+SELECT token_text FROM DR$CYTATY_TEKST_IDX$I;
+
+SELECT token_text FROM DR$CYTATY_TEKST_IDX$I
+WHERE token_text = 'głupcy';
+--nie ma
+
+--ZADANIE 15
+drop index cytaty_tekst_idx;
+create index CYTATY_TEKST_IDX on CYTATY(TEKST)
+indextype is CTXSYS.CONTEXT;
+
+--ZADANIE 16
+select * from cytaty
+where contains(tekst, 'głupcy')>0;
+
+--JEST
+
+--ZADANIE 17
+DROP INDEX CYTATY_TEKST_IDX;
+DROP TABLE CYTATY;
+
+--------------------------------------
+--------------------------------------
+-- ZADANIE 1
+
+CREATE TABLE QUOTES AS SELECT * FROM ZTPD.QUOTES;
+
+--zadanie 2
+create index QUOTES_TEXT_IDX on QUOTES(TEXT)
+indextype is CTXSYS.CONTEXT;
+
+--Zadanie 3
+select * from quotes
+where contains(text, 'work')>0;
+
+select * from quotes
+where contains(text, '$work')>0;
+
+select * from quotes
+where contains(text, 'working')>0;
+
+select * from quotes
+where contains(text, '$working')>0;
+
+--$ to jest operator stem
+
+--ZADANIE 4
+select * from quotes
+where contains(text, 'it')>0;
+
+--nie ma, bo to stopword
+
+--zadanie 5
+select * from CTX_STOPLISTS;
+
+--pewnie wykorzystywal default_stoplist
+
+--zadanie 6
+select * from ctx_stopwords;
+
+--ZADANIE 7
+DROP INDEX QUOTES_TEXT_IDX;
+
+CREATE INDEX QUOTES_TEXT_IDX
+ON QUOTES(TEXT)
+INDEXTYPE IS CTXSYS.CONTEXT
+PARAMETERS('STOPLIST CTXSYS.EMPTY_STOPLIST');
+
+--ZADANIE 8
+select * from quotes
+where contains(text, 'it')>0;
+
+--TAK, SĄ WYNIKI
+
+--zadanie 9
+select * from quotes
+where contains(text, 'fool AND humans')>0;
+
+--zadanie 10
+select * from quotes
+where contains(text, 'fool AND computer')>0;
+
+--zadanie 11
+select * from quotes
+where contains(text, '(fool AND humans) within SENTENCE')>0;
+
+--używany index nie jest przystosowany do zdań
+
+--zadanie 12
+DROP INDEX QUOTES_TEXT_IDX;
+
+--ZADANIE 13
+BEGIN
+    ctx_ddl.create_section_group('nullgroup', 'NULL_SECTION_GROUP');
+    ctx_ddl.add_special_section('nullgroup', 'SENTENCE');
+    ctx_ddl.add_special_section('nullgroup', 'PARAGRAPH');
+END;
+
+--zadanie 14
+CREATE INDEX QUOTES_TEXT_IDX
+ON QUOTES(TEXT)
+INDEXTYPE IS CTXSYS.CONTEXT
+PARAMETERS('section group nullgroup');
+
+--ZADANIE 15
+select * from quotes
+where contains(text, '(fool AND humans) within SENTENCE')>0;
+
+select * from quotes
+where contains(text, '(fool AND computer) within SENTENCE')>0;
+
+--ZADANIE 16
+select * from quotes
+where contains(text, 'humans')>0;
+
+--zwrócił. wykrywa to jako dwa różne słowa
+
+--ZADANIE 17
+DROP INDEX QUOTES_TEXT_IDX;
+
+begin
+ ctx_ddl.create_preference('lex_z_m','BASIC_LEXER');
+ ctx_ddl.set_attribute('lex_z_m',
+ 'printjoins', '_-');
+ ctx_ddl.set_attribute ('lex_z_m',
+ 'index_text', 'YES');
+end;
+
+CREATE INDEX QUOTES_TEXT_IDX
+ON QUOTES(TEXT)
+INDEXTYPE IS CTXSYS.CONTEXT
+PARAMETERS('LEXER lex_z_m');
+
+--zadanie 18
+select * from quotes
+where contains(text, 'humans')>0;
+
+--nie zwrócił
+
+--zadanie 19
+select * from quotes
+where contains(text, 'non\-humans')>0;
+
+--jest cytat :D
+
+
+--zadanie 20
+DROP TABLE QUOTES;
+
+BEGIN
+    CTX_DDL.DROP_PREFERENCE('lex_z_m');
+END;
+
+
+
+
