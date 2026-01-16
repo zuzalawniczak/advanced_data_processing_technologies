@@ -16,5 +16,5 @@ Repository for the ADPT class.
 | 9 | XSL - lab | 12.12 | [X] | [X] |
 | 10 | XQuery - lab | 19.12 | [X] | [X] |
 | 11 | Oracle Text - lab | 09.01 | [X] | [ ] |
-| 12 | Lucene - lab | 16.01 | [ ] | [ ] |
+| 12 | Lucene - lab | 16.01 | [X] | [ ] |
 
